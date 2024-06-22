@@ -12,7 +12,7 @@ def load_audio(file_name, output_format="numpy"):
     Loads a mono or stereo audio file in audios folder.
     Input:
         - file_name: str type object. The file must be an audio file.
-        - output_format: str type object. The desired vector output format ('numpy' or 'torch'). Defaults to 'numpy'.
+        - output_format: str type object. The desired vector output format ('numpy' or 'torch_tensor'). Defaults to 'numpy'.
     Output:
         - audio: array type object.
         - fs: sample frequency
@@ -27,7 +27,7 @@ def load_audio(file_name, output_format="numpy"):
     # Converts the resampled signal to the desired output format
     if output_format == 'numpy':
         audio = audio.numpy().astype(np.float32)
-    elif output_format == 'torch':
+    elif output_format == 'torch_tensor':
         audio = audio.type(torch.float32)
 
     return audio, fs
