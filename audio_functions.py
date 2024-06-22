@@ -21,7 +21,7 @@ def load_audio(file_name, output_format="numpy"):
     if type(file_name) != str:
         raise Exception("file_name must be a string")
 
-    audio, fs = torchaudio.load(f"./audios/{file_name}")
+    audio, fs = torchaudio.load(f"./{file_name}")
     audio = audio.squeeze()
 
     # Converts the resampled signal to the desired output format

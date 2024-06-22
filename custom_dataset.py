@@ -18,7 +18,7 @@ class MusicalInstrumentsDataset(Dataset):
         self.annotations = rd.read_file(annotations_file)
         self.audio_dir = audio_dir
         self.classes = self.annotations["Class"].unique()   #gets audio classes
-        self.labels = range(1, len(self.classes) + 2)       #create labels from audio classes
+        self.labels = self.create_labels()       #create labels from audio classes
 
     def __len__(self):
         """Returns number of samples in dataset"""
@@ -33,13 +33,27 @@ class MusicalInstrumentsDataset(Dataset):
     
     def _get_audio_sample_path(self, index):
         """Returns audio file path from x index"""
-        sample_filename = self.annotations.iloc[index, "FileName"]
+        sample_filename = self.annotations.loc[index, "FileName"]
         path = os.path.join(self.audio_dir, sample_filename)
         return path
     
-    def get_audio_sample_label(self, index):
+    def _get_audio_sample_label(self, index):
         """Returns audio label from x index"""
-        sample_class = self.annotations.iloc[index, "Class"]
-        sample_label = self.labels[sample_class + 1]
+        sample_class = self.annotations.loc[index, "Class"]
+        sample_label = self.labels[sample_class]
         return sample_label
+    
+    def create_labels(self):
+        "Create labels from audio classes"
+        labels = {}
+        for n, i in enumerate(self.classes):
+            labels[i] = n + 1
+        return labels
 
+
+if __name__ == "__main__":
+    ANNOTATIONS_FILE = "train_data/Metadata_Train.csv"
+    AUDIO_DIR = "train_data/Train Samples"
+
+    mi_ds = MusicalInstrumentsDataset(ANNOTATIONS_FILE, AUDIO_DIR)
+    print(len(mi_ds))

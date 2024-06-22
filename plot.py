@@ -289,7 +289,8 @@ def data_hist(data, color="#55f", title=False, show=False):
 
     """
     plt.hist(data, color=color)
-    if title: plt.title(title)
+    if title: 
+        plt.title(title)
 
     if show: 
         plt.show()
