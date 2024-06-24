@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 import audio_functions as auf
 import read_data as rd
 import os
-
+import torchaudio
 """
 Audio metadata consists of 2 columns:
 FileName | Class
@@ -14,11 +14,13 @@ Testing and training data are splitted and all the audios are in the same folder
 
 class MusicalInstrumentsDataset(Dataset):
 
-    def __init__(self, annotations_file, audio_dir):
+    def __init__(self, annotations_file, audio_dir, transformation, sample_rate):
         self.annotations = rd.read_file(annotations_file)
         self.audio_dir = audio_dir
         self.classes = self.annotations["Class"].unique()   #gets audio classes
         self.labels = self.create_labels()       #create labels from audio classes
+        self.transformation = transformation
+        self.target_sr = sample_rate
 
     def __len__(self):
         """Returns number of samples in dataset"""
@@ -29,6 +31,10 @@ class MusicalInstrumentsDataset(Dataset):
         audio_sample_path = self._get_audio_sample_path(index)
         label = self._get_audio_sample_label(index)
         audio_signal, sr = auf.load_audio(audio_sample_path, output_format="torch_tensor")
+        audio_signal = auf.to_mono(audio_signal)
+        audio_signal = auf.resample_signal_fs(audio_signal, sr, self.target_sr, output_format="torch_tensor")
+        
+        audio_signal = self.transformation(audio_signal)
         return audio_signal, label
     
     def _get_audio_sample_path(self, index):
@@ -44,7 +50,7 @@ class MusicalInstrumentsDataset(Dataset):
         return sample_label
     
     def create_labels(self):
-        "Create labels from audio classes"
+        """Create labels from audio classes"""
         labels = {}
         for n, i in enumerate(self.classes):
             labels[i] = n + 1
@@ -54,6 +60,12 @@ class MusicalInstrumentsDataset(Dataset):
 if __name__ == "__main__":
     ANNOTATIONS_FILE = "train_data/Metadata_Train.csv"
     AUDIO_DIR = "train_data/Train Samples"
+    SAMPLE_RATE = 44100
 
-    mi_ds = MusicalInstrumentsDataset(ANNOTATIONS_FILE, AUDIO_DIR)
+    mel_spect = torchaudio.transforms.MelSpectrogram(sample_rate = SAMPLE_RATE, n_fft=1024, hop_length=512, n_mels=64)
+
+    mi_ds = MusicalInstrumentsDataset(ANNOTATIONS_FILE, AUDIO_DIR, mel_spect, SAMPLE_RATE)
     print(len(mi_ds))
+
+    signal, label = mi_ds[0]
+
