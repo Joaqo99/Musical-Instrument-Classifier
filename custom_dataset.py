@@ -14,13 +14,14 @@ Testing and training data are splitted and all the audios are in the same folder
 
 class MusicalInstrumentsDataset(Dataset):
 
-    def __init__(self, annotations_file, audio_dir, transformation, sample_rate):
+    def __init__(self, annotations_file, audio_dir, transformation, sample_rate, audio_size):
         self.annotations = rd.read_file(annotations_file)
         self.audio_dir = audio_dir
         self.classes = self.annotations["Class"].unique()   #gets audio classes
         self.labels = self.create_labels()       #create labels from audio classes
         self.transformation = transformation
         self.target_sr = sample_rate
+        self.audio_size = audio_size
 
     def __len__(self):
         """Returns number of samples in dataset"""
@@ -31,9 +32,9 @@ class MusicalInstrumentsDataset(Dataset):
         audio_sample_path = self._get_audio_sample_path(index)
         label = self._get_audio_sample_label(index)
         audio_signal, sr = auf.load_audio(audio_sample_path, output_format="torch_tensor")
-        audio_signal = auf.to_mono(audio_signal)
+        audio_signal = auf.to_mono(audio_signal).squeeze()
         audio_signal = auf.resample_signal_fs(audio_signal, sr, self.target_sr, output_format="torch_tensor")
-        
+        audio_signal = self.to_audio_size(audio_signal)
         audio_signal = self.transformation(audio_signal)
         return audio_signal, label
     
@@ -55,6 +56,18 @@ class MusicalInstrumentsDataset(Dataset):
         for n, i in enumerate(self.classes):
             labels[i] = n + 1
         return labels
+    
+    def cut_intro(self, audio_signal):
+        """Cuts a useless audio signal intro until the instrument sound"""
+        pass
+    
+    def to_audio_size(self, audio_signal):
+        if len(audio_signal) > self.audio_size:
+            audio_signal = audio_signal[:self.audio_size]
+
+        elif len(audio_signal) < self.audio_size:
+            pass
+
 
 
 if __name__ == "__main__":

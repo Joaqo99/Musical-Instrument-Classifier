@@ -55,6 +55,8 @@ def to_mono(audio):
     """
     #error handling
 
+
+
     if  type(audio) != np.ndarray and type(audio) != torch.Tensor:
         raise ValueError("audio must be a vector")
     if len(audio.shape) == 1:
@@ -66,6 +68,19 @@ def to_mono(audio):
         #features
         audio_mono = (audio[:,0]/2)+(audio[:,1]/2)
     return audio_mono
+
+def generate_time_vector(dur, fs):
+    """
+    Generates a time vector:
+    Inputs:
+        - dur: float type object. Vector time duration
+        - fs: int type object. Sample frequency.
+    Outputs:
+        - t: array type object. Time vector
+    """
+
+    t = np.linspace(0, dur, int(dur*fs))
+    return t
 
 def resample_signal_fs(in_signal, original_sr, target_sr, output_format='numpy'):
     """
